@@ -9,7 +9,7 @@ class BookListPage extends StatefulWidget {
 }
 
 class _BookListPageState extends State<BookListPage> {
-  List<Map<String, dynamic>> Buku = [];
+  List<Map<String, dynamic>> books = [];
 
   @override
   void initState() {
@@ -18,10 +18,10 @@ class _BookListPageState extends State<BookListPage> {
   }
 
   void fetchBooks() async {
-    final response = await Supabase.instance.client.from('Buku').select();
+    final response = await Supabase.instance.client.from('book').select();
 
     setState(() {
-      Buku = List<Map<String, dynamic>>.from(response);
+      books = List<Map<String, dynamic>>.from(response);
     });
   }
 
@@ -30,12 +30,7 @@ class _BookListPageState extends State<BookListPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal.shade300,
-        title: const Text(
-          'Daftar Buku',
-          style: TextStyle(
-            fontWeight: FontWeight.bold, // Membuat teks menjadi bold
-          ),
-        ),
+        title: const Text('Daftar Buku'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -45,8 +40,8 @@ class _BookListPageState extends State<BookListPage> {
         ],
       ),
       body: Container(
-        color: Colors.teal.shade200, // Warna latar belakang
-        child: Buku.isEmpty
+        color: Colors.teal.shade200, 
+        child: books.isEmpty
             ? Center(
                 child: const Text(
                   'Tidak ada buku tersedia',
@@ -56,15 +51,16 @@ class _BookListPageState extends State<BookListPage> {
             : Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListView.builder(
-                  itemCount: Buku.length,
+                  itemCount: books.length,
                   itemBuilder: (context, index) {
-                    final book = Buku[index];
+                    final book = books[index];
                     return Card(
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: ListTile(
+                        leading: Icon(Icons.book, color: Colors.teal.shade800), // Ikon buku di sini
                         title: Text(
-                          book['judul'] ?? 'tidak ada judul',
+                          book['title'] ?? 'No Title',
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18),
                         ),
@@ -72,12 +68,12 @@ class _BookListPageState extends State<BookListPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              book['penulis'] ?? 'tidak ada penulis',
+                              book['author'] ?? 'No Author',
                               style: const TextStyle(
                                   fontStyle: FontStyle.italic, fontSize: 14),
                             ),
                             Text(
-                              book['deskripsi'] ?? 'tidak ada deskripsi',
+                              book['description'] ?? 'No Description',
                               style: const TextStyle(
                                   fontStyle: FontStyle.italic, fontSize: 13),
                             ),
@@ -87,15 +83,13 @@ class _BookListPageState extends State<BookListPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit_note,
-                                  color: Colors.blue),
+                              icon: const Icon(Icons.edit_note_outlined, color: Colors.blue),
                               onPressed: () {
                                 Navigator.pop(context);
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_forever,
-                                  color: Colors.red),
+                              icon: const Icon(Icons.delete_forever_rounded, color: Colors.red),
                               onPressed: () {
                                 Navigator.pop(context);
                               },
@@ -118,7 +112,7 @@ class _BookListPageState extends State<BookListPage> {
           );
         },
         child: const Icon(Icons.add),
-        backgroundColor: Colors.teal.shade900,
+        backgroundColor: Colors.white,
       ),
     );
   }
@@ -141,13 +135,7 @@ class _AddBookPageState extends State<AddBookPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add New Book',
-          style: TextStyle(
-            fontWeight: FontWeight.bold, // Membuat teks menjadi bold
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Tambah Buku'),
         backgroundColor: Colors.teal.shade300,
       ),
       body: Padding(
@@ -161,7 +149,7 @@ class _AddBookPageState extends State<AddBookPage> {
             ),
             TextField(
               controller: _authorController,
-              decoration: const InputDecoration(labelText: 'Penulis'),
+              decoration: const InputDecoration(labelText: 'Pengarang'),
             ),
             TextField(
               controller: _descriptionController,
@@ -170,19 +158,18 @@ class _AddBookPageState extends State<AddBookPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                final judul = _titleController.text;
-                final penulis = _authorController.text;
-                final deskripsi = _descriptionController.text;
-                if (judul.isNotEmpty &&
-                    penulis.isNotEmpty &&
-                    deskripsi.isNotEmpty) {
+                final title = _titleController.text;
+                final author = _authorController.text;
+                final description = _descriptionController.text;
+                if (title.isNotEmpty && author.isNotEmpty && description.isNotEmpty) {
                   // Menambahkan buku ke Supabase
-                  final response =
-                      await Supabase.instance.client.from('Buku').insert([
+                  final response = await Supabase.instance.client
+                  .from('book')
+                  .insert([
                     {
-                      'judul': judul,
-                      'penulis': penulis,
-                      'deskripsi': deskripsi,
+                      'title': title,
+                      'author': author,
+                      'description': description,
                     }
                   ]);
                   if (response.error == null) {
@@ -191,15 +178,15 @@ class _AddBookPageState extends State<AddBookPage> {
                   } else {
                     // Menampilkan pesan error jika gagal menyimpan
                     ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(response.error!.message)));
+                      SnackBar(content: Text(response.error!.message)));
                   }
                 } else {
                   // Menampilkan pesan jika ada field yang kosong
                   ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Semua field harus diisi')));
+                    const SnackBar(content: Text('Semua field harus diisi')));
                 }
               },
-              child: const Text('Tambah Buku'),
+              child: const Text('Simpan'),
             ),
           ],
         ),
