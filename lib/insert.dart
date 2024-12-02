@@ -11,7 +11,7 @@ class AddBookPage extends StatefulWidget {
 
 class _AddBookPageState extends State<AddBookPage> {
   final TextEditingController titleController = TextEditingController();
-  final TextEditingController authorController = TextEditingController();//insert
+  final TextEditingController authorController = TextEditingController();//membuat penyimanan input
   final TextEditingController descriptionController = TextEditingController();
 
   @override
